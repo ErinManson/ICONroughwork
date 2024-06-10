@@ -12,7 +12,7 @@ def generate(prompt, temp=0):
         if event.event_type == "text-generation":
             print(event.text, end='')
             
-user_input = "a pizza named the EEEEEM"
+user_input = "a pizza named the EEM"
 prompt = f"""Write a one sentence product description for {user_input}"""
 
 generate(prompt, temp=0.5) #temp?
