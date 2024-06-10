@@ -15,4 +15,4 @@ def generate(prompt, temp=0):
 user_input = "a pizza named the EEM"
 prompt = f"""Write a one sentence product description for {user_input}"""
 
-generate(prompt, temp=0.5)
+generate(prompt, temp=0.5) #temp?
