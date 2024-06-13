@@ -17,4 +17,4 @@ def generate(prompt, temp=0):
 
 prompt = "How many results are found under 'Title' on this webpage? https://canadabuys.canada.ca/en/tender-opportunities?search_filter=&status%5B87%5D=87&status%5B1920%5D=1920&record_per_page=200&current_tab=t&words=56101700"
 
-generate(prompt, temp=0.5) #temp?
+generate(prompt, temp=0) #temp?
