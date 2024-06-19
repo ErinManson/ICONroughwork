@@ -1,20 +1,43 @@
-import cohere # type: ignore
-co = cohere.Client('8xAa7F7OMYGK3sZPj3q0dzh8AQd41PjiDwlzQ5Wh')
+import requests
+import pdfplumber
 
-def generate(prompt, temp=0):
-    response = co.chat_stream(
-        message=prompt,
-        model="command-r",
-        temperature=temp,
-        preamble='')
-    
-    for event in response:
-        if event.event_type == "text-generation":
-            print(event.text, end='')
+# URL of the PDF file
+pdf_url = 'https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/31198/amendment-005-to-solicitation-w0107.pdf'
+
+# Send a GET request to the URL
+response = requests.get(pdf_url)
+
+# Check if the request was successful
+if response.status_code == 200:
+    # Open a local file with write-binary mode
+    with open('downloaded_file.pdf', 'wb') as file:
+        # Write the content of the response (which is the PDF) to the local file
+        file.write(response.content)
+        file.close()
+    print("PDF recieved")
+else:
+    print(f"Failed to download PDF. Status code: {response.status_code}")
+
+def extract_text_and_tables(pdf_path):
+    text = ""
+    tables_text = ""
+    with pdfplumber.open(pdf_path) as pdf:
+        for page in pdf.pages:
+            # Extract text
+            if page.extract_text():
+                text += page.extract_text() + "\n"
             
-#user_input = "a pizza named the Erin"
-#prompt = f"""Write a one sentence product description for {user_input}"""
+            # Extract tables
+            tables = page.extract_tables()
+            for table in tables:
+                for row in table:
+                    # Replace None with empty string
+                    row = [str(cell) if cell is not None else "" for cell in row]
+                    tables_text += "\t".join(row) + "\n"
+                tables_text += "\n"
+    return text, tables_text
 
-prompt = "How many results are found under 'Title' on this webpage? https://canadabuys.canada.ca/en/tender-opportunities?search_filter=&status%5B87%5D=87&status%5B1920%5D=1920&record_per_page=200&current_tab=t&words=56101700"
-
-generate(prompt, temp=0) #temp?
+# Example usage
+pdf_path = 'downloaded_file.pdf'
+text, tables_text = extract_text_and_tables(pdf_path)
+print(text, tables_text)
