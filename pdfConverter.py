@@ -1,9 +1,10 @@
 import requests
 import pdfplumber
+import re
+import shutil
 
 def download_pdf(pdf_url, output_path):
     #gets pdf content and stores it in a local file to be converted to text later
-
     try:
         #immitates browser
         headers = {
@@ -20,7 +21,6 @@ def download_pdf(pdf_url, output_path):
             'Cache-Control': 'max-age=0',
         }
         response = requests.get(pdf_url, headers=headers, allow_redirects=True)
-
         # Check if the request was successful
         if response.status_code == 200 and response.headers['Content-Type'] == 'application/pdf':
             # Open a local file with write-binary mode
@@ -33,9 +33,8 @@ def download_pdf(pdf_url, output_path):
     except Exception as e:
         print(f"An error occurred: {e}")
 
-def extract_text_and_tables(pdf_path):
+def extract_text(pdf_path):
     #extracts text and tables from pdf, stores in tables_text and text variables, and prints them
-
     text = ""
     tables_text = ""
     try:
@@ -53,22 +52,92 @@ def extract_text_and_tables(pdf_path):
                         row = [str(cell) if cell is not None else "" for cell in row]
                         tables_text += "\t".join(row) + "\n"
                     tables_text += "\n"
+
     except Exception as e:
         print(f"An error occurred while extracting data: {e}")
     return text, tables_text
 
-
-
-
-# Example usage
-pdf_url = 'https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/31198/request-for-proposal-%28rfp---office-seating-sa---english-pers-svcs.pdf'
-pdf_path = 'downloaded_file.pdf'
+# Download PDF from url and extract text into text variable
+pdf_url = 'https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/34472/en_rfp_j074110.pdf'
+#pdf_url = 'https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/40540/202403795---rfp-%28final.pdf'
+pdf_path = 'downloaded_file2.pdf'
 
 download_pdf(pdf_url, pdf_path)
-text, tables_text = extract_text_and_tables(pdf_path)
+text, tables_text = extract_text(pdf_path)
 
-print("Extracted Text:")
-print(text)
+if tables_text not in text:
+    text=text+tables_text
 
-print("Extracted Tables:")
-print(tables_text)
+
+
+#store text in .txt file
+f = open("downloaded_file2.txt", "w")
+f.write(text)
+f.close()
+
+#separate text into lines to more easily manipulate
+text_list = text.splitlines()
+oldlen=len(text_list)
+
+#open a new file to store altered text
+f = open("test2.txt", "w")
+#Loop through lines of text and make changes
+filtered_text=[]
+j=0
+for i in text_list:
+    if ("" not in i) and ("" not in i) and ("☐" not in i):
+        if "Quantity Required" in i:
+            entry=i.replace("_", "")
+
+            for k in range(1,4):
+                if "_" in text_list[j+k]:
+                    value=text_list[j+k]
+                    value=value.replace("_","")
+                    entry=entry+value
+            
+            filtered_text.append(entry)
+
+
+        if "Solicitation closes" in i:
+            filtered_text.append("Solicitation closes:")
+            for l in range(1,9):
+                if "on –" in text_list[j+l] or "at –" in text_list[j+l]:
+                    filtered_text.append(text_list[j+l])
+
+    else:
+        filtered_text.append(i)
+    j+=1
+    
+#write lines that we will be keeping for alterations to file
+for i in filtered_text:
+    f.write(i)
+    f.write("\n")
+f.close()
+
+shutil.copyfile("test2.txt", "test2final.txt")
+
+#read
+f = open("test2final.txt", "r")
+data = f.read()
+f.close()
+box_replace = {
+    "": "Y",
+    "": "Y",
+    "☐": "N",
+    "": "-",
+    "": "->",
+    "": ""
+}
+
+for i, j in box_replace.items():
+    data = data.replace(i,j)
+
+f = open("test2final.txt", "w")
+f.write(data)
+
+print(oldlen)
+print(len(filtered_text))
+
+
+
+
