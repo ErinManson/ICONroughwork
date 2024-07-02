@@ -57,7 +57,7 @@ def extract_text_ocr(pdf_path):
 
 # Download PDF from URL and extract text using OCR
 pdf_url = 'https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/40540/202403795---rfp-%28final.pdf'
-#pdf_url = 'https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/40211/1000033838c_rfb_eng.pdf'
+pdf_url = 'https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/40211/1000033838c_rfb_eng.pdf'
 """ pdf_url = 'https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/39850/202400584---rfb-%28psib_en.pdf'
 pdf_url = 'https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/34472/en_rfp_j074110.pdf'
 pdf_url = "https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/7467/rfp---english.pdf" """
