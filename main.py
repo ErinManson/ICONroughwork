@@ -16,7 +16,9 @@ postings = separate_urls(input_data)
 
 # Output the separated URLs
 for post in postings:
-    print(post)
+    for url in post:
+        print(url)
+    print("\n")
 
 
 #loop through posts
