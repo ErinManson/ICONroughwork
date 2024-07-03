@@ -75,99 +75,98 @@ def extract_text(pdf_path):
         print(f"An error occurred while extracting data: {e}")
     return text
 
-# Download PDF from url and extract text into text variable
-pdf_url = "https://canadabuys.canada.ca/sites/default/files/webform/tender_notice/7467/rfp---english.pdf"
-pdf_path = 'downloaded_file2.pdf'
+def main(pdf_url):
 
-download_pdf(pdf_url, pdf_path)
-text = extract_text(pdf_path)
+    # Download PDF from url and extract text into text variable
+    pdf_path = 'downloaded_file.pdf'
 
-#store text in .txt file
-f = open("downloaded_file2.txt", "w")
-f.write(text)
-f.close()
+    download_pdf(pdf_url, pdf_path)
+    text = extract_text(pdf_path)
 
-#separate text into lines to more easily manipulate
-text_list = text.splitlines()
-oldlen=len(text_list)
+    #store text in .txt file
+    f = open("downloaded_file2.txt", "w")
+    f.write(text)
+    f.close()
 
-#open a new file to store altered text
-f = open("test2.txt", "w")
-#Loop through lines of text and make changes
-filtered_text=[]
-j=0
-in_table = False
-#loop through lines
-for i in text_list:
-#check if key characters are in text to keep
-    #check if we are in table to enable not_kept tracking to prevent missing important lines
-    if "Headrest" in i:
-        in_table = True
-        not_kept = 0
-    if "Upholstery" in i: 
-        in_table =False
+    #separate text into lines to more easily manipulate
+    text_list = text.splitlines()
+    oldlen=len(text_list)
 
-    if ("" not in i) and ("" not in i) and ("☐" not in i) and ("Table - A" not in i) and ("Table : A" not in i) and ("Table A" not in i) and ("TABLE - A" not in i) and ("TABLE : A" not in i) and ("TABLE A" not in i):
-        #if not check for quantity required
-        if "Quantity Required" in i or ("QTY" in i):
-            entry=i.replace("_", "")
-            for k in range(1,4):
-                if "_" in text_list[j+k]:
-                    value=text_list[j+k]
-                    value=value.replace("_","")
-                    entry=entry+value
-            
-            filtered_text.append(entry)
-            not_kept = 0 #because we did not discard keep as zero/set to zero
-        elif "Solicitation closes" in i or "Solicitation Closes" in i:
-            filtered_text.append("Solicitation closes:")
-            for l in range(1,9):
-                if "on –" in text_list[j+l] or "at –" in text_list[j+l]:
-                    filtered_text.append(text_list[j+l])
-            not_kept = 0 #again because we kept set to 0
-
-        elif in_table and not_kept <3:
-            not_kept+=1
-            filtered_text.append(i)
-        else:
-            #dont keep if not in table or if not_kept is too high
-            #instead we set to zero and discard
+    #open a new file to store altered text
+    f = open("test2.txt", "w")
+    #Loop through lines of text and make changes
+    filtered_text=[]
+    j=0
+    in_table = False
+    #loop through lines
+    for i in text_list:
+    #check if key characters are in text to keep
+        #check if we are in table to enable not_kept tracking to prevent missing important lines
+        if "Headrest" in i:
+            in_table = True
             not_kept = 0
+        if "Upholstery" in i: 
+            in_table =False
 
-    else:
-        filtered_text.append(i)
-    j+=1
-    
-for i in filtered_text:
-    f.write(i)
-    f.write("\n")
-f.close()
+        if ("" not in i) and ("" not in i) and ("☐" not in i) and ("Table - A" not in i) and ("Table : A" not in i) and ("Table A" not in i) and ("TABLE - A" not in i) and ("TABLE : A" not in i) and ("TABLE A" not in i):
+            #if not check for quantity required
+            if "Quantity Required" in i or ("QTY" in i):
+                entry=i.replace("_", "")
+                for k in range(1,4):
+                    if "_" in text_list[j+k]:
+                        value=text_list[j+k]
+                        value=value.replace("_","")
+                        entry=entry+value
+                
+                filtered_text.append(entry)
+                not_kept = 0 #because we did not discard keep as zero/set to zero
+            elif "Solicitation closes" in i or "Solicitation Closes" in i:
+                filtered_text.append("Solicitation closes:")
+                for l in range(1,9):
+                    if "on –" in text_list[j+l] or "at –" in text_list[j+l]:
+                        filtered_text.append(text_list[j+l])
+                not_kept = 0 #again because we kept set to 0
 
-shutil.copyfile("test2.txt", "test2final.txt")
+            elif in_table and not_kept <3:
+                not_kept+=1
+                filtered_text.append(i)
+            else:
+                #dont keep if not in table or if not_kept is too high
+                #instead we set to zero and discard
+                not_kept = 0
 
-#read
-f = open("test2final.txt", "r")
-data = f.read()
-f.close()
-box_replace = {
-    "": "Y",
-    "": "Y",
-    "": "Y",
-    "": "Y",
-    "": "N",
-    "☐": "N",
-    "": "-",
-    "": "->",
-    "": ""
-}
+        else:
+            filtered_text.append(i)
+        j+=1
+        
+    for i in filtered_text:
+        f.write(i)
+        f.write("\n")
+    f.close()
 
-for i, j in box_replace.items():
-    data = data.replace(i,j)
+    shutil.copyfile("test2.txt", "temp.txt")
 
-f = open("test2final.txt", "w")
-f.write(data)
+    #read
+    f = open("temp.txt", "r")
+    data = f.read()
+    f.close()
+    box_replace = {
+        "": "Y",
+        "": "Y",
+        "": "Y",
+        "": "Y",
+        "": "N",
+        "☐": "N",
+        "": "-",
+        "": "->",
+        "": ""
+    }
 
-print(oldlen)
-print(len(filtered_text))
+    for i, j in box_replace.items():
+        data = data.replace(i,j)
 
+    f = open("temp.txt", "w")
+    f.write(data)
 
+    print(oldlen)
+    print(len(filtered_text))
